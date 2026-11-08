@@ -1,430 +1,334 @@
 <!DOCTYPE html>
-<html lang="de" class="dark">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartHome Hub - Tapo, Kasa & Alexa</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#090d16',
-                        cardbg: '#131b2e',
-                        accent: '#3b82f6',
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartHome Hub & Babyphone</title>
+    <link rel="manifest" href="manifest.json">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-card {
-            background: rgba(19, 27, 46, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+        :root {
+            --bg-color: #020617;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: radial-gradient(circle at top left, #0f172a, var(--bg-color) 80%);
+            color: var(--text-main); 
+            min-height: 100vh; 
+            padding: 20px; 
+            padding-bottom: 50px; 
+        }
+
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; padding-bottom: 16px; 
+            border-bottom: 1px solid var(--card-border); 
+        }
+        
+        .logo-area { display: flex; align-items: center; gap: 14px; }
+        .logo-icon { 
+            width: 48px; height: 48px; 
+            background: linear-gradient(135deg, #10b981, #0ea5e9); 
+            border-radius: 16px; display: flex; align-items: center; justify-content: center; 
+            font-size: 22px; color: white; 
+            box-shadow: 0 8px 16px var(--accent-glow); 
+        }
+        
+        h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.3px; }
+        p.sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        
+        .header-btns { display: flex; align-items: center; gap: 10px; }
+        .badge { 
+            background: rgba(16, 185, 129, 0.15); color: #34d399; 
+            border: 1px solid rgba(16, 185, 129, 0.3); 
+            padding: 6px 12px; border-radius: 30px; 
+            font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; 
+        }
+        .dot { width: 8px; height: 8px; background-color: #34d399; border-radius: 50%; animation: pulse 2s infinite; box-shadow: 0 0 8px #34d399; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        section { margin-bottom: 28px; }
+        h2 { 
+            font-size: 11px; font-weight: 700; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        
+        .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        
+        /* Modern Glassmorphism Cards */
+        .card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border); 
+            border-radius: 24px; padding: 16px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-out; 
+        }
+        .card:active { transform: scale(0.97); }
+        .card.active { 
+            border-color: var(--accent); 
+            background: rgba(16, 185, 129, 0.05); 
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+        
+        .mode-btn { background: none; border: none; color: white; text-align: left; width: 100%; cursor: pointer; display: flex; align-items: center; gap: 12px; outline: none; }
+        .mode-icon { 
+            width: 40px; height: 40px; 
+            background: rgba(255, 255, 255, 0.05); border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 18px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .mode-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+        .mode-desc { font-size: 12px; color: var(--text-muted); }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main); padding: 10px 16px; 
+            border-radius: 14px; font-size: 12px; font-weight: 600; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .btn-premium:active { transform: scale(0.95); background: #1e293b; }
+
+        /* Camera Box */
+        .cam-box { 
+            background: #000; border-radius: 16px; height: 160px; 
+            position: relative; overflow: hidden; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 1px solid var(--card-border); 
+        }
+        .cam-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0.6; transition: 0.3s; }
+        .card:active .cam-bg { opacity: 0.4; transform: scale(1.05); }
+        .cam-tag { 
+            position: absolute; top: 12px; left: 12px; 
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+            padding: 6px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;
+            display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .cam-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+        
+        /* Thermostat */
+        .temp-card { display: flex; flex-direction: column; gap: 16px; }
+        .temp-header { display: flex; justify-content: space-between; align-items: center; }
+        .temp-controls { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(0, 0, 0, 0.2); padding: 12px 16px; 
+            border-radius: 16px; border: 1px solid var(--card-border); 
+        }
+        .temp-btns { display: flex; align-items: center; gap: 14px; }
+        .t-btn { 
+            width: 36px; height: 36px; background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); color: white; 
+            border-radius: 10px; font-weight: bold; font-size: 18px; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .t-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+        .t-val { font-size: 18px; font-weight: 700; color: #34d399; width: 55px; text-align: center; }
+
+        /* Bosch Device */
+        .device-row { display: flex; justify-content: space-between; align-items: center; }
+        .device-info { display: flex; align-items: center; gap: 14px; }
+        .device-icon { font-size: 24px; background: rgba(255,255,255,0.05); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.show { opacity: 1; }
+        .modal { background: #0f172a; border: 1px solid var(--card-border); border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5); max-height: 90vh; overflow-y: auto; }
+        .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; padding: 12px 16px; border-radius: 12px; font-size: 14px; transition: 0.2s; }
+        .form-input:focus { outline: none; border-color: var(--accent); background: rgba(16,185,129,0.05); }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 4px; }
     </style>
 </head>
-<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+<body>
 
-    <!-- Top Navbar -->
-    <header class="border-b border-slate-800/80 bg-darkbg/80 sticky top-0 z-50 backdrop-blur-xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-house-signal text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight">SmartHome Zentrale</h1>
-                    <p class="text-xs text-slate-400">TP-Link Tapo, Kasa & Alexa</p>
-                </div>
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">🏡</div>
+            <div>
+                <h1>SmartHome Hub</h1>
+                <p class="sub">Tapo, Kasa & Bosch</p>
             </div>
-            <div class="flex items-center space-x-3">
-                <div class="hidden sm:flex items-center space-x-2 bg-slate-900/80 px-3.5 py-1.5 rounded-full border border-slate-800 text-xs">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-slate-300 font-medium">Cloud Verbunden</span>
-                </div>
-                <button onclick="showToast('Alexa Skill Synchronisation aktiv')" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-cyan-400 transition relative">
-                    <i class="fa-brands fa-amazon text-base"></i>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-cyan-400 rounded-full"></span>
-                </button>
-            </div>
+        </div>
+        <div class="header-btns">
+            <div class="badge"><div class="dot"></div> Live</div>
+            <button class="btn-premium" onclick="toggleModal(true)" style="padding: 8px 12px;">⚙️</button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
-
-        <!-- Quick Modes Section -->
+    <main>
+        <!-- Babyphone Modus -->
         <section>
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Schnell-Modi</h2>
-                <span class="text-xs text-slate-500">Zentralsteuerung</span>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                <button onclick="setMode('zuhause')" id="btn-mode-zuhause" class="glass-card p-4 rounded-2xl flex items-center space-x-3.5 hover:border-emerald-500/40 transition-all group border-emerald-500/80 bg-emerald-500/10 shadow-lg shadow-emerald-500/5">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-house-chimney text-base"></i>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-semibold text-sm text-slate-100">Zuhause</p>
-                        <p class="text-[11px] text-slate-400">Normalbetrieb</p>
-                    </div>
-                </button>
-
-                <button onclick="setMode('abwesend')" id="btn-mode-abwesend" class="glass-card p-4 rounded-2xl flex items-center space-x-3.5 hover:border-blue-500/40 transition-all group">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-person-walking-arrow-right text-base"></i>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-semibold text-sm text-slate-100">Abwesend</p>
-                        <p class="text-[11px] text-slate-400">Eco & Alarm</p>
-                    </div>
-                </button>
-
-                <button onclick="setMode('nacht')" id="btn-mode-nacht" class="glass-card p-4 rounded-2xl flex items-center space-x-3.5 hover:border-indigo-500/40 transition-all group">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-moon text-base"></i>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-semibold text-sm text-slate-100">Nachtruhe</p>
-                        <p class="text-[11px] text-slate-400">Abgesenkt</p>
-                    </div>
-                </button>
-
-                <button onclick="setMode('party')" id="btn-mode-party" class="glass-card p-4 rounded-2xl flex items-center space-x-3.5 hover:border-amber-500/40 transition-all group">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-fire text-base"></i>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-semibold text-sm text-slate-100">Party</p>
-                        <p class="text-[11px] text-slate-400">Komfortwärme</p>
-                    </div>
-                </button>
+            <h2>👶 Sicherheit & Audio</h2>
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(14, 165, 233, 0.1)); border: 1px solid rgba(16, 185, 129, 0.2);">
+                <div>
+                    <div style="font-weight: 700; font-size: 15px; color: #fff;" id="baby-status-text">Babyphone Standby</div>
+                    <div class="sub">Audio-Wache über Tapo-App</div>
+                </div>
+                <button class="btn-premium" id="baby-toggle-btn" onclick="toggleBabyphone()" style="background: var(--accent); color: #fff; border: none; padding: 12px 18px;">Aktivieren</button>
             </div>
         </section>
 
-        <!-- Tapo Cameras Section -->
+        <!-- Kameras (Platzhalter für Tapo-App) -->
         <section>
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">TP-Link Tapo Kameras (Live)</h2>
-                <button onclick="showToast('Alle Kameras aktualisiert')" class="text-xs text-blue-400 hover:text-blue-300 font-medium transition">Aktualisieren</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Camera 1 -->
-                <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-800">
-                    <div class="relative bg-slate-950 aspect-video flex items-center justify-center group overflow-hidden">
-                        <img src="https://placehold.co/800x450/131b2e/64748b?text=Tapo+C200+Wohnzimmer" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="Wohnzimmer">
-                        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-2 border border-white/10">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            <span class="text-slate-200">LIVE • Tapo C200</span>
-                        </div>
-                        <div class="absolute bottom-3 right-3 flex space-x-2">
-                            <button onclick="showToast('Schnappschuss von Wohnzimmer gespeichert')" class="p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur border border-white/10 transition shadow-md">
-                                <i class="fa-solid fa-camera text-xs"></i>
-                            </button>
+            <h2>Kameras (Tapo App)</h2>
+            <div class="grid-2">
+                <div class="card" style="padding: 12px;">
+                    <div class="cam-box">
+                        <div class="cam-bg" style="background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80'); filter: grayscale(30%);"></div>
+                        <div class="cam-tag">
+                            <div class="dot" style="background: #ef4444; box-shadow: 0 0 8px #ef4444;"></div>
+                            <span id="label-cam1">Kinderzimmer / Babycam</span>
                         </div>
                     </div>
-                    <div class="p-4 flex justify-between items-center bg-slate-900/40">
-                        <div>
-                            <h3 class="font-semibold text-sm text-slate-200">Wohnzimmer</h3>
-                            <p class="text-xs text-slate-400">Bewegungserkennung aktiv</p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="togglePrivacy('cam1')" id="btn-privacy-1" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition">Privatsphäre</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Camera 2 -->
-                <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-800">
-                    <div class="relative bg-slate-950 aspect-video flex items-center justify-center group overflow-hidden">
-                        <img src="https://placehold.co/800x450/131b2e/64748b?text=Tapo+C310+Eingang" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="Eingang">
-                        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-2 border border-white/10">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            <span class="text-slate-200">LIVE • Tapo C310</span>
-                        </div>
-                        <div class="absolute bottom-3 right-3 flex space-x-2">
-                            <button onclick="showToast('Schnappschuss von Eingang gespeichert')" class="p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur border border-white/10 transition shadow-md">
-                                <i class="fa-solid fa-camera text-xs"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-4 flex justify-between items-center bg-slate-900/40">
-                        <div>
-                            <h3 class="font-semibold text-sm text-slate-200">Haustür & Hof</h3>
-                            <p class="text-xs text-slate-400">Nachtsicht aktiv</p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="togglePrivacy('cam2')" id="btn-privacy-2" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition">Privatsphäre</button>
-                        </div>
+                    <div class="cam-footer" style="padding: 0 4px;">
+                        <span style="font-weight: 500;">IP: <strong style="color: #38bdf8;" id="display-ip1">192.168.178.41</strong></span>
+                        <button class="btn-premium" onclick="alert('Bitte öffne die offizielle Tapo-App für den RTSP Live-Stream.')">▶ Tapo App öffnen</button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Kasa Thermostats Section -->
+        <!-- Thermostate (Kasa Hub) -->
         <section>
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kasa Smart Thermostate</h2>
-                <span class="text-xs text-slate-500">Heizkörperregelung</span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                
-                <!-- Thermostat 1: Wohnzimmer -->
-                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-6 shadow-xl border border-slate-800">
-                    <div class="flex justify-between items-start">
+            <h2>Klima (Kasa Hub)</h2>
+            <div class="grid-3">
+                <div class="card temp-card">
+                    <div class="temp-header">
                         <div>
-                            <h3 class="font-bold text-base text-slate-100">Wohnzimmer</h3>
-                            <p class="text-xs text-slate-400">Ist-Temperatur: <strong class="text-slate-200">21.5°C</strong></p>
+                            <div style="font-weight: 700; font-size: 15px;" id="label-th1">Kinderzimmer</div>
+                            <div class="sub">Hub IP: <span id="display-hub-ip">192.168.178.36</span></div>
                         </div>
-                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-                            <i class="fa-solid fa-temperature-arrow-up text-base"></i>
+                        <div style="background: rgba(249, 115, 22, 0.1); color: #f97316; padding: 10px; border-radius: 12px; font-size: 18px;">🔥</div>
+                    </div>
+                    <div class="temp-controls">
+                        <span class="sub" style="font-weight: 600;">Zielwert</span>
+                        <div class="temp-btns">
+                            <button class="t-btn" onclick="adjustTemp('wz', -0.5)">-</button>
+                            <span id="target-wz" class="t-val">22.0°</span>
+                            <button class="t-btn" onclick="adjustTemp('wz', 0.5)">+</button>
                         </div>
                     </div>
-                    <!-- Circular / Modern Dial Adjustment -->
-                    <div class="flex flex-col items-center justify-center py-2">
-                        <div class="relative w-32 h-32 rounded-full border-4 border-slate-800 flex items-center justify-center shadow-inner bg-slate-950/40">
-                            <div class="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin-slow"></div>
-                            <div class="text-center">
-                                <span id="target-wz" class="text-3xl font-extrabold text-amber-400">22.0°</span>
-                                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Sollwert</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 pt-2 border-t border-slate-800/80">
-                        <button onclick="adjustTemp('wz', -0.5)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-sm font-bold rounded-xl transition border border-slate-700">- 0.5°</button>
-                        <button onclick="adjustTemp('wz', 0.5)" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-sm font-bold rounded-xl transition shadow-lg shadow-amber-600/20">+ 0.5°</button>
-                    </div>
-                </div>
-
-                <!-- Thermostat 2: Schlafzimmer -->
-                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-6 shadow-xl border border-slate-800">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-base text-slate-100">Schlafzimmer</h3>
-                            <p class="text-xs text-slate-400">Ist-Temperatur: <strong class="text-slate-200">19.0°C</strong></p>
-                        </div>
-                        <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-                            <i class="fa-solid fa-temperature-arrow-up text-base"></i>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center justify-center py-2">
-                        <div class="relative w-32 h-32 rounded-full border-4 border-slate-800 flex items-center justify-center shadow-inner bg-slate-950/40">
-                            <div class="absolute inset-0 rounded-full border-4 border-blue-500/30 border-t-blue-400"></div>
-                            <div class="text-center">
-                                <span id="target-sz" class="text-3xl font-extrabold text-blue-400">19.5°</span>
-                                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Sollwert</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 pt-2 border-t border-slate-800/80">
-                        <button onclick="adjustTemp('sz', -0.5)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-sm font-bold rounded-xl transition border border-slate-700">- 0.5°</button>
-                        <button onclick="adjustTemp('sz', 0.5)" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-sm font-bold rounded-xl transition shadow-lg shadow-blue-600/20">+ 0.5°</button>
-                    </div>
-                </div>
-
-                <!-- Thermostat 3: Badezimmer -->
-                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-6 shadow-xl border border-slate-800">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-base text-slate-100">Badezimmer</h3>
-                            <p class="text-xs text-slate-400">Ist-Temperatur: <strong class="text-slate-200">23.0°C</strong></p>
-                        </div>
-                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-                            <i class="fa-solid fa-temperature-arrow-up text-base"></i>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center justify-center py-2">
-                        <div class="relative w-32 h-32 rounded-full border-4 border-slate-800 flex items-center justify-center shadow-inner bg-slate-950/40">
-                            <div class="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-400"></div>
-                            <div class="text-center">
-                                <span id="target-bz" class="text-3xl font-extrabold text-amber-400">24.0°</span>
-                                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Sollwert</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 pt-2 border-t border-slate-800/80">
-                        <button onclick="adjustTemp('bz', -0.5)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-sm font-bold rounded-xl transition border border-slate-700">- 0.5°</button>
-                        <button onclick="adjustTemp('bz', 0.5)" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-sm font-bold rounded-xl transition shadow-lg shadow-amber-600/20">+ 0.5°</button>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Amazon Alexa Integration Section -->
-        <section class="glass-card p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
-                        <i class="fa-brands fa-amazon text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-bold text-lg text-slate-100">Amazon Alexa Integration</h2>
-                        <p class="text-xs text-slate-400">Sprachroutinen, Skills & Smart-Home Verknüpfung</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span id="alexa-status-text" class="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Alexa Skill Gekoppelt</span>
-                    <button onclick="toggleAlexaConnection()" id="alexa-toggle-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">Trennen</button>
-                </div>
-            </div>
-
-            <!-- Routine Triggers Grid -->
-            <div>
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Schnell-Routinen auslösen ("Alexa, ...")</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <button onclick="triggerRoutine('Gute Nacht')" class="p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-2xl text-left transition space-y-2 group">
-                        <div class="flex justify-between items-center">
-                            <span class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform"><i class="fa-solid fa-moon text-sm"></i></span>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Routine</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-200">"Alexa, gute Nacht"</p>
-                            <p class="text-[11px] text-slate-400">Lichter aus, Thermostate absenken, Kameras scharf</p>
-                        </div>
-                    </button>
-
-                    <button onclick="triggerRoutine('Ich bin weg')" class="p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-2xl text-left transition space-y-2 group">
-                        <div class="flex justify-between items-center">
-                            <span class="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform"><i class="fa-solid fa-door-open text-sm"></i></span>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Routine</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-200">"Alexa, ich bin weg"</p>
-                            <p class="text-[11px] text-slate-400">Alle Geräte in Eco Modus versetzen</p>
-                        </div>
-                    </button>
-
-                    <button onclick="triggerRoutine('Wohnzimmer heizen')" class="p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-2xl text-left transition space-y-2 group">
-                        <div class="flex justify-between items-center">
-                            <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform"><i class="fa-solid fa-fire text-sm"></i></span>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Routine</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-200">"Alexa, Heizung an"</p>
-                            <p class="text-[11px] text-slate-400">Wohnzimmer Thermostat auf 23°C</p>
-                        </div>
-                    </button>
-
-                    <button onclick="triggerRoutine('Film ab')" class="p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-2xl text-left transition space-y-2 group">
-                        <div class="flex justify-between items-center">
-                            <span class="p-2 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform"><i class="fa-solid fa-film text-sm"></i></span>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Routine</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-200">"Alexa, Filmabend"</p>
-                            <p class="text-[11px] text-slate-400">Dimm-Modus & Wohnzimmer Kamera standby</p>
-                        </div>
-                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- Bosch Home Connect -->
+        <section>
+            <h2>Hausgeräte</h2>
+            <div class="card">
+                <div class="device-row">
+                    <div class="device-info">
+                        <div class="device-icon">🍽️</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 15px;">Bosch Geschirrspüler</div>
+                            <div class="sub" style="color: var(--accent);">Bereit</div>
+                            <div class="sub" style="font-size: 10px;">IP: <span id="display-bosch-ip">192.168.178.37</span></div>
+                        </div>
+                    </div>
+                    <button class="btn-premium" onclick="alert('Befehl an Bosch Geschirrspüler (192.168.178.37) gesendet.')">Start</button>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        <p>SmartHome Zentrale für TP-Link Tapo, Kasa & Amazon Alexa &bull; Sichere lokale & Cloud Verbindung</p>
-    </footer>
-
-    <!-- Toast Notification Overlay -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-slate-100 px-4 py-3 rounded-2xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-3 text-sm">
-        <i class="fa-solid fa-circle-info text-cyan-400"></i>
-        <span id="toastMessage">Aktion erfolgreich ausgeführt</span>
+    <!-- Modal Einstellungen -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <h3>
+                <span>Geräte & IPs anpassen</span>
+                <button class="modal-close" onclick="toggleModal(false)">&times;</button>
+            </h3>
+            <div class="form-group">
+                <label>Kasa Thermostat-Hub IP</label>
+                <input type="text" id="input-hub-ip" class="form-input" value="192.168.178.36">
+            </div>
+            <div class="form-group">
+                <label>Bosch Geschirrspüler IP</label>
+                <input type="text" id="input-bosch-ip" class="form-input" value="192.168.178.37">
+            </div>
+            <div class="form-group">
+                <label>Tapo Kamera (Babycam) IP</label>
+                <input type="text" id="input-ip1" class="form-input" value="192.168.178.41">
+            </div>
+            <button class="btn-premium" onclick="saveSettings()" style="width: 100%; margin-top: 10px; background: var(--accent); border: none; padding: 14px; font-size: 15px;">💾 Speichern</button>
+        </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
     <script>
-        // Temperatures State
-        let temperatures = { wz: 22.0, sz: 19.5, bz: 24.0 };
-
-        // Adjust Thermostat Temperature
-        function adjustTemp(room, amount) {
-            temperatures[room] = Math.max(15.0, Math.min(30.0, temperatures[room] + amount));
-            const elem = document.getElementById(`target-${room}`);
-            if (elem) {
-                elem.innerText = temperatures[room].toFixed(1) + '°';
-            }
-            showToast(`Kasa Thermostat ${room.toUpperCase()} auf ${temperatures[room].toFixed(1)}°C eingestellt`);
-        }
-
-        // Global Mode Selector
-        function setMode(mode) {
-            ['zuhause', 'abwesend', 'nacht', 'party'].forEach(m => {
-                const btn = document.getElementById(`btn-mode-${m}`);
-                if (btn) {
-                    btn.className = "glass-card p-4 rounded-2xl flex items-center space-x-3.5 hover:border-slate-700 transition-all group";
-                }
-            });
-            const activeBtn = document.getElementById(`btn-mode-${mode}`);
-            if (activeBtn) {
-                activeBtn.className = "glass-card p-4 rounded-2xl flex items-center space-x-3.5 transition-all group border-emerald-500/80 bg-emerald-500/10 shadow-lg shadow-emerald-500/5";
-            }
-            const names = { zuhause: 'Zuhause-Modus', abwesend: 'Abwesend-Modus (Kameras aktiv)', nacht: 'Nachtruhe aktiviert', party: 'Party-Modus' };
-            showToast(names[mode]);
-        }
-
-        // Toggle Camera Privacy Mode
-        function togglePrivacy(camId) {
-            const btn = document.getElementById(`btn-privacy-${camId.replace('cam', '')}`);
-            if (btn) {
-                if (btn.innerText === 'Privatsphäre') {
-                    btn.innerText = 'Aktiv';
-                    btn.className = "px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-medium transition shadow-md";
-                    showToast('Kamera aus dem Privatsphäre-Modus geholt');
-                } else {
-                    btn.innerText = 'Privatsphäre';
-                    btn.className = "px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition";
-                    showToast('Kamera in den Privatsphäre-Modus versetzt');
-                }
-            }
-        }
-
-        // Alexa Connection Toggle
-        let alexaConnected = true;
-        function toggleAlexaConnection() {
-            alexaConnected = !alexaConnected;
-            const statusText = document.getElementById('alexa-status-text');
-            const toggleBtn = document.getElementById('alexa-toggle-btn');
-            if (alexaConnected) {
-                statusText.className = "text-xs font-medium text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20";
-                statusText.innerText = "Alexa Skill Gekoppelt";
-                toggleBtn.innerText = "Trennen";
-                showToast("Amazon Alexa Verbindung wiederhergestellt");
+        function toggleModal(show) {
+            const overlay = document.getElementById('settings-modal');
+            if(show) {
+                overlay.style.display = 'flex';
+                setTimeout(() => overlay.classList.add('show'), 10);
+                document.getElementById('input-hub-ip').value = localStorage.getItem('kasa_hub_ip') || '192.168.178.36';
+                document.getElementById('input-bosch-ip').value = localStorage.getItem('bosch_ip') || '192.168.178.37';
+                document.getElementById('input-ip1').value = localStorage.getItem('tapo_ip1') || '192.168.178.41';
             } else {
-                statusText.className = "text-xs font-medium text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20";
-                statusText.innerText = "Getrennt";
-                toggleBtn.innerText = "Verbinden";
-                showToast("Amazon Alexa Verbindung getrennt");
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.style.display = 'none', 300);
             }
         }
 
-        // Trigger Alexa Routine
-        function triggerRoutine(routineName) {
-            showToast(`Alexa Routine ausgeführt: "${routineName}"`);
+        function saveSettings() {
+            const hubIp = document.getElementById('input-hub-ip').value;
+            const boschIp = document.getElementById('input-bosch-ip').value;
+            const ip1 = document.getElementById('input-ip1').value;
+
+            localStorage.setItem('kasa_hub_ip', hubIp);
+            localStorage.setItem('bosch_ip', boschIp);
+            localStorage.setItem('tapo_ip1', ip1);
+
+            document.getElementById('display-hub-ip').innerText = hubIp;
+            document.getElementById('display-bosch-ip').innerText = boschIp;
+            document.getElementById('display-ip1').innerText = ip1;
+
+            toggleModal(false);
         }
 
-        // Toast Notification System
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const messageEl = document.getElementById('toastMessage');
-            messageEl.innerText = message;
-            
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+        window.onload = function() {
+            if(localStorage.getItem('kasa_hub_ip')) {
+                document.getElementById('display-hub-ip').innerText = localStorage.getItem('kasa_hub_ip');
+                document.getElementById('display-bosch-ip').innerText = localStorage.getItem('bosch_ip');
+                document.getElementById('display-ip1').innerText = localStorage.getItem('tapo_ip1');
+            }
+        }
+
+        let babyActive = false;
+        function toggleBabyphone() {
+            babyActive = !babyActive;
+            const btn = document.getElementById('baby-toggle-btn');
+            const txt = document.getElementById('baby-status-text');
+            if(babyActive) {
+                btn.innerText = "Beenden";
+                btn.style.background = "#ef4444";
+                txt.innerText = "👶 Überwachung Aktiv";
+                alert("Babyphone-Modus aktiv. (Nutze die Tapo-App für Audio im Hintergrund)");
+            } else {
+                btn.innerText = "Aktivieren";
+                btn.style.background = "var(--accent)";
+                txt.innerText = "Babyphone Standby";
+            }
+        }
+
+        const temps = { wz: 22.0 };
+        function adjustTemp(room, amount) {
+            temps[room] = Math.max(15, Math.min(30, temps[room] + amount));
+            document.getElementById(`target-${room}`).innerText = temps[room].toFixed(1) + '°';
         }
     </script>
 </body>
